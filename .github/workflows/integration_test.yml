@@ -1,40 +1,35 @@
-name: Flutter Android Integration Test
-on:
-  push:
-    branches:
-      - main # Adjust this to match the branch where you want to trigger the workflow
+name: Run integration tests
+on: push
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  integration-tests:
+    name: Running tests on macOS-latest
+    runs-on: macOS-latest
+    strategy:
+      fail-fast: false
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2 # Use the appropriate Flutter action version
+      - name: Setup Java
+        uses: actions/setup-java@v2
         with:
-          channel: stable
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk
-
-      - name: Set up Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
+          distribution: 'zulu'
+          java-version: '11'
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
         with:
-          api-level: 30 # Use the desired Android API level
-          target: default # Or use "google_apis" for an emulator with Google Play services
-          arch: x86 
-
-      - name: Start emulator
-        run: emulator -avd emulator-30 -no-audio -no-window
-
-      - name: Wait for emulator to start
-        run: android-wait-for-emulator
-
-      - name: Run integration tests
-        run: flutter drive --driver=test_driver/integration_test.dart --target=test/integration/create_form_model_test.dart
+          channel: 'stable'
+      - name: Install Android SDK
+        uses: malinskiy/action-android/install-sdk@release/0.1.2
+      - run: echo $ANDROID_HOME
+      - run: sdkmanager --install "ndk;23.1.7779620"
+      - run: sdkmanager --install "build-tools;30.0.3"
+      - run: flutter pub get
+      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.2
+        with:
+          cmd: flutter test integration_test
+          api: 31
+          cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
+          tag: google_apis
+          abi: x86_64
+          
