@@ -24,12 +24,14 @@ jobs:
         run: flutter build apk
 
       - name: Set up Android emulator
-        uses: actions/checkout@v2
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          emulator: android-30 # Use the desired Android emulator version
+          api-level: 30 # Use the desired Android API level
+          target: default # Or use "google_apis" for an emulator with Google Play services
+          arch: x86 
 
       - name: Start emulator
-        run: emulator -avd Pixel_2_API_30 -no-audio -no-window
+        run: emulator -avd emulator-30 -no-audio -no-window
 
       - name: Wait for emulator to start
         run: android-wait-for-emulator
