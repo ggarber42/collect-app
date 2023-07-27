@@ -1,0 +1,38 @@
+name: Flutter Android Integration Test
+on:
+  push:
+    branches:
+      - main # Adjust this to match the branch where you want to trigger the workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2 # Use the appropriate Flutter action version
+        with:
+          flutter-version: '2.x.x' # Replace with your desired Flutter version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk
+
+      - name: Set up Android emulator
+        uses: actions/checkout@v2
+        with:
+          emulator: android-30 # Use the desired Android emulator version
+
+      - name: Start emulator
+        run: emulator -avd <your_emulator_name> -no-audio -no-window
+
+      - name: Wait for emulator to start
+        run: android-wait-for-emulator
+
+      - name: Run integration tests
+        run: flutter drive --driver=test_driver/integration_test.dart --target=test/integration/create_form_model_test.dart
